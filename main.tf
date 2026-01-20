@@ -65,3 +65,51 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
+
+
+#-------------------------------
+# Security Group
+#-------------------------------
+
+resource "aws_security_group" "allow_tls" {
+  name        = "learning-security-group"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "A Security Group for the learning-vpc."
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+
+#-----------------------------
+# Network aws_route_table_association
+#-----------------------------
+
+resource "aws_network_interface" "test" {
+  subnet_id   = aws_subnet.public.id
+  private_ips = ["10.0.1.50"]
+
+  security_groups = [
+    aws_security_group.allow_tls.id,
+  ]
+
+  tags = {
+    Name = "primary_network_interface"
+  }
+}
